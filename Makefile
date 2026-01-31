@@ -2,9 +2,6 @@ roms := \
 	pokered.gbc \
 	pokeblue.gbc \
 	pokeblue_debug.gbc
-patches := \
-	pokered.patch \
-	pokeblue.patch
 
 rom_obj := \
 	audio.o \
@@ -20,8 +17,6 @@ rom_obj := \
 pokered_obj        := $(rom_obj:.o=_red.o)
 pokeblue_obj       := $(rom_obj:.o=_blue.o)
 pokeblue_debug_obj := $(rom_obj:.o=_blue_debug.o)
-pokered_vc_obj     := $(rom_obj:.o=_red_vc.o)
-pokeblue_vc_obj    := $(rom_obj:.o=_blue_vc.o)
 
 
 ### Build tools
@@ -55,8 +50,6 @@ RGBGFXFLAGS  ?= -Weverything
 	red \
 	blue \
 	blue_debug \
-	red_vc \
-	blue_vc \
 	clean \
 	tidy \
 	compare \
@@ -66,8 +59,6 @@ all: $(roms)
 red:        pokered.gbc
 blue:       pokeblue.gbc
 blue_debug: pokeblue_debug.gbc
-red_vc:     pokered.patch
-blue_vc:    pokeblue.patch
 
 clean: tidy
 	find gfx \
@@ -80,20 +71,13 @@ tidy:
 	$(RM) $(roms) \
 	      $(roms:.gbc=.sym) \
 	      $(roms:.gbc=.map) \
-	      $(patches) \
-	      $(patches:.patch=_vc.gbc) \
-	      $(patches:.patch=_vc.sym) \
-	      $(patches:.patch=_vc.map) \
-	      $(patches:%.patch=vc/%.constants.sym) \
 	      $(pokered_obj) \
 	      $(pokeblue_obj) \
-	      $(pokered_vc_obj) \
-	      $(pokeblue_vc_obj) \
 	      $(pokeblue_debug_obj) \
 	      rgbdscheck.o
 	$(MAKE) clean -C tools/
 
-compare: $(roms) $(patches)
+compare: $(roms)
 	@$(SHA1) -c roms.sha1
 
 tools:
@@ -109,11 +93,6 @@ endif
 $(pokered_obj):        RGBASMFLAGS += -D _RED
 $(pokeblue_obj):       RGBASMFLAGS += -D _BLUE
 $(pokeblue_debug_obj): RGBASMFLAGS += -D _BLUE -D _DEBUG
-$(pokered_vc_obj):     RGBASMFLAGS += -D _RED -D _RED_VC
-$(pokeblue_vc_obj):    RGBASMFLAGS += -D _BLUE -D _BLUE_VC
-
-%.patch: %_vc.gbc %.gbc vc/%.patch.template
-	tools/make_patch $*_vc.sym $^ $@
 
 rgbdscheck.o: rgbdscheck.asm
 	$(RGBASM) -o $@ $<
@@ -137,8 +116,6 @@ endef
 $(foreach obj, $(pokered_obj), $(eval $(call DEP,$(obj),$(obj:_red.o=.asm))))
 $(foreach obj, $(pokeblue_obj), $(eval $(call DEP,$(obj),$(obj:_blue.o=.asm))))
 $(foreach obj, $(pokeblue_debug_obj), $(eval $(call DEP,$(obj),$(obj:_blue_debug.o=.asm))))
-$(foreach obj, $(pokered_vc_obj), $(eval $(call DEP,$(obj),$(obj:_red_vc.o=.asm))))
-$(foreach obj, $(pokeblue_vc_obj), $(eval $(call DEP,$(obj),$(obj:_blue_vc.o=.asm))))
 
 endif
 
@@ -147,15 +124,11 @@ RGBLINKFLAGS += -d
 pokered.gbc:        RGBLINKFLAGS += -p 0x00
 pokeblue.gbc:       RGBLINKFLAGS += -p 0x00
 pokeblue_debug.gbc: RGBLINKFLAGS += -p 0xff
-pokered_vc.gbc:     RGBLINKFLAGS += -p 0x00
-pokeblue_vc.gbc:    RGBLINKFLAGS += -p 0x00
 
 RGBFIXFLAGS += -jsv -n 0 -k 01 -l 0x33 -m MBC3+RAM+BATTERY -r 03
 pokered.gbc:        RGBFIXFLAGS += -p 0x00 -t "POKEMON RED"
 pokeblue.gbc:       RGBFIXFLAGS += -p 0x00 -t "POKEMON BLUE"
 pokeblue_debug.gbc: RGBFIXFLAGS += -p 0xff -t "POKEMON BLUE"
-pokered_vc.gbc:     RGBFIXFLAGS += -p 0x00 -t "POKEMON RED"
-pokeblue_vc.gbc:    RGBFIXFLAGS += -p 0x00 -t "POKEMON BLUE"
 
 %.gbc: $$(%_obj) layout.link
 	$(RGBLINK) $(RGBLINKFLAGS) -l layout.link -m $*.map -n $*.sym -o $@ $(filter %.o,$^)
