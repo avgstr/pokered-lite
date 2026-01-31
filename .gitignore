@@ -9,7 +9,6 @@
 # compiled roms
 *.gbc
 *.gb
-*.patch
 
 # rgbds extras
 *.map
