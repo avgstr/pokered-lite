@@ -289,11 +289,9 @@ LinkMenu:
 .choseCancel
 	xor a
 	ld [wMenuJoypadPollCount], a
-	vc_hook Wireless_net_stop
 	call Delay3
 	call CloseLinkConnection
 	ld hl, LinkCanceledText
-	vc_hook Wireless_net_end
 	call PrintText
 	ld hl, wStatusFlags4
 	res BIT_LINK_CONNECTED, [hl]
