@@ -5,7 +5,6 @@ CFLAGS := -O3 -std=c11 -Wall -Wextra -pedantic
 
 tools := \
 	gfx \
-	make_patch \
 	pkmncompress \
 	scan_includes
 
